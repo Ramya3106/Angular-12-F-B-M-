@@ -72,11 +72,13 @@ export default function CrudForm() {
           <TextField label="Email ID" fullWidth value={form.email} onChange={handleChange('email')} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormLabel>Gender</FormLabel>
-          <RadioGroup row value={form.gender} onChange={handleChange('gender')}>
-            <FormControlLabel value="Male" control={<Radio />} label="Male" />
-            <FormControlLabel value="Female" control={<Radio />} label="Female" />
-          </RadioGroup>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 8 }}>
+            <FormLabel style={{ marginBottom: 8 }}>Gender</FormLabel>
+            <RadioGroup row value={form.gender} onChange={handleChange('gender')}>
+              <FormControlLabel value="Male" control={<Radio />} label="Male" style={{ marginRight: 24 }} />
+              <FormControlLabel value="Female" control={<Radio />} label="Female" />
+            </RadioGroup>
+          </div>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <Autocomplete
@@ -116,12 +118,7 @@ export default function CrudForm() {
           <Button variant="contained" color="warning" onClick={handleReset}>Reset</Button>
         </Grid>
       </Grid>
-      <Box sx={{ mt: 4, display: 'flex', alignItems: 'center' }}>
-        <TextField label="Filter" sx={{ mr: 2 }} />
-        <Button variant="contained" color="warning" sx={{ borderRadius: '50%', minWidth: 0, width: 48, height: 48 }}>
-          <span role="img" aria-label="delete">🗑️</span>
-        </Button>
-      </Box>
+      {/* Filter section removed as requested */}
     </Paper>
   );
 }
