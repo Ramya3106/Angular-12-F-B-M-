@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { TextField, Button, Radio, RadioGroup, FormControlLabel, FormLabel, Autocomplete, Box, Paper, Grid } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { TextField, Button, Radio, RadioGroup, FormControlLabel, FormLabel, Autocomplete, Box, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material';
+import { Delete, Edit } from '@mui/icons-material';
 import { Country, State, City } from 'country-state-city';
+import { userService } from './services/userService';
 
 // ...existing code...
 
 export default function CrudForm() {
-  // ...existing code...
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -18,6 +19,9 @@ export default function CrudForm() {
     address: '',
     pincode: '',
   });
+  const [users, setUsers] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
   // Get all countries
   const countryOptions = Country.getAllCountries().map(c => c.name);
   // Get states for selected country
@@ -38,6 +42,56 @@ export default function CrudForm() {
     }
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await userService.getAllUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      alert('Error fetching users. Please check if the server is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      if (editingId) {
+        await userService.updateUser(editingId, form);
+        setEditingId(null);
+      } else {
+        await userService.createUser(form);
+      }
+      handleReset();
+      fetchUsers();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      alert('Error saving user. Please check if all fields are filled.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (user) => {
+    setForm(user);
+    setEditingId(user._id);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await userService.deleteUser(id);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
   const handleReset = () => {
     setForm({
       firstName: '',
@@ -51,6 +105,7 @@ export default function CrudForm() {
       address: '',
       pincode: '',
     });
+    setEditingId(null);
   };
 
   return (
@@ -114,11 +169,50 @@ export default function CrudForm() {
           <TextField label="Pincode" fullWidth value={form.pincode} onChange={handleChange('pincode')} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Button variant="contained" color="primary" disabled sx={{ mr: 2 }}>Submit</Button>
+          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={loading} sx={{ mr: 2 }}>
+            {loading ? 'Processing...' : (editingId ? 'Update' : 'Submit')}
+          </Button>
           <Button variant="contained" color="warning" onClick={handleReset}>Reset</Button>
         </Grid>
       </Grid>
-      {/* Filter section removed as requested */}
+      
+      {/* Users Table */}
+      <Box sx={{ mt: 4 }}>
+        <h3>Users List</h3>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>DOB</TableCell>
+                <TableCell>Gender</TableCell>
+                <TableCell>Location</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user._id}>
+                  <TableCell>{user.firstName} {user.lastName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.dob}</TableCell>
+                  <TableCell>{user.gender}</TableCell>
+                  <TableCell>{user.city}, {user.state}, {user.country}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleEdit(user)} color="primary">
+                      <Edit />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(user._id)} color="error">
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </Paper>
   );
 }
