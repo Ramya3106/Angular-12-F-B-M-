@@ -68,9 +68,9 @@ app.post('/api/users', async (req, res) => {
     // Normalize email (trim and lowercase)
     const normalizedEmail = email_id.trim().toLowerCase();
     
-    // Check if email already exists before creating user
+    // Check if email already exists before creating user (exact match, case-insensitive)
     const existingUser = await User.findOne({ 
-      email_id: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') } 
+      email_id: normalizedEmail 
     });
     if (existingUser) {
       return res.status(409).json({ 
@@ -101,9 +101,15 @@ app.post('/api/users', async (req, res) => {
       });
     }
     if (error.code === 11000) {
+      // Extract field name from error
+      const field = Object.keys(error.keyPattern || {})[0] || 'email_id';
+      const value = Object.values(error.keyValue || {})[0] || 'unknown';
+      
       return res.status(409).json({ 
-        message: 'Duplicate entry detected. This should not happen as we check for duplicates beforehand.',
-        error: 'DUPLICATE_KEY_ERROR'
+        message: `A user with this ${field === 'email_id' ? 'email' : field} already exists.`,
+        field: field,
+        value: value,
+        suggestion: 'Please use a different email address or update the existing user.'
       });
     }
     res.status(500).json({ message: error.message });
