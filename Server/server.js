@@ -9,11 +9,8 @@ const User = require('./models/User');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB Atlas connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -55,11 +52,38 @@ app.get('/api/users/:id', async (req, res) => {
 // POST create new user
 app.post('/api/users', async (req, res) => {
   try {
+    // Validate required fields
+    const { first_name, last_name, date_of_birth, email_id,gender,country,state,city,address,pincode } = req.body;
+    
+    if (!first_name || !last_name || !date_of_birth || !email_id ||!gender || !country || !state ||!city || 
+      !address ||!pincode
+    ) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: first_name, last_name, date_of_birth, and email_id are required',
+        required: ['first_name', 'last_name', 'date_of_birth', 'email_id', 'gender','country','state','city','address','pincode'],
+        received: Object.keys(req.body)
+      });
+    }
+
     const newUser = new User(req.body);
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation Error',
+        errors: Object.keys(error.errors).map(key => ({
+          field: key,
+          message: error.errors[key].message
+        }))
+      });
+    }
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        message: 'Email already exists. Please use a different email address.' 
+      });
+    }
+    res.status(500).json({ message: error.message });
   }
 });
 

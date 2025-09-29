@@ -62,11 +62,26 @@ export default function CrudForm() {
   const handleSubmit = async () => {
     try {
       setLoading(true);
+      
+      // Transform field names to match backend schema
+      const userData = {
+        first_name: form.firstName,
+        last_name: form.lastName,
+        date_of_birth: form.dob,
+        email_id: form.email,
+        gender: form.gender,
+        country: form.country,
+        state: form.state,
+        city: form.city,
+        address: form.address,
+        pincode: form.pincode
+      };
+      
       if (editingId) {
-        await userService.updateUser(editingId, form);
+        await userService.updateUser(editingId, userData);
         setEditingId(null);
       } else {
-        await userService.createUser(form);
+        await userService.createUser(userData);
       }
       handleReset();
       fetchUsers();
@@ -79,7 +94,20 @@ export default function CrudForm() {
   };
 
   const handleEdit = (user) => {
-    setForm(user);
+    // Transform field names from backend to frontend format
+    const formData = {
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
+      dob: user.date_of_birth || '',
+      email: user.email_id || '',
+      gender: user.gender || 'Male',
+      country: user.country || '',
+      state: user.state || '',
+      city: user.city || '',
+      address: user.address || '',
+      pincode: user.pincode || ''
+    };
+    setForm(formData);
     setEditingId(user._id);
   };
 
@@ -195,9 +223,9 @@ export default function CrudForm() {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user._id}>
-                  <TableCell>{user.firstName} {user.lastName}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.dob}</TableCell>
+                  <TableCell>{user.first_name} {user.last_name}</TableCell>
+                  <TableCell>{user.email_id}</TableCell>
+                  <TableCell>{user.date_of_birth}</TableCell>
                   <TableCell>{user.gender}</TableCell>
                   <TableCell>{user.city}, {user.state}, {user.country}</TableCell>
                   <TableCell>{user.address}, {user.pincode}</TableCell>
