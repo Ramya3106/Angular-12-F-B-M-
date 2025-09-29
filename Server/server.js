@@ -9,8 +9,11 @@ const User = require('./models/User');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
+// MongoDB Atlas connection
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -20,6 +23,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
+
+// Clean up duplicate records (temporary route)
+app.delete('/api/cleanup-duplicates', async (req, res) => {
+  try {
+    await User.deleteMany({ email_id: { $in: [null, ""] } });
+    res.json({ message: 'Cleaned up records with null/empty email_id' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -49,89 +62,20 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
-// POST create new user
+// POST create new user(s)
 app.post('/api/users', async (req, res) => {
   try {
-    // Validate required fields
-    const { first_name, last_name, date_of_birth, email_id,gender,country,state,city,address,pincode } = req.body;
-    
-    if (!first_name || !last_name || !date_of_birth || !email_id ||!gender || !country || !state ||!city || 
-      !address ||!pincode
-    ) {
-      return res.status(400).json({ 
-        message: 'Missing required fields: first_name, last_name, date_of_birth, and email_id are required',
-        required: ['first_name', 'last_name', 'date_of_birth', 'email_id', 'gender','country','state','city','address','pincode'],
-        received: Object.keys(req.body)
-      });
+    let data = req.body;
+
+    // If single object sent, convert to array
+    if (!Array.isArray(data)) {
+      data = [data];
     }
 
-    // Normalize email (trim and lowercase)
-    const normalizedEmail = email_id.trim().toLowerCase();
-    
-    // Check if email already exists before creating user (exact match, case-insensitive)
-    const existingUser = await User.findOne({ 
-      email_id: normalizedEmail 
-    });
-    if (existingUser) {
-      return res.status(409).json({ 
-        message: 'Email already exists. Please use a different email address.',
-        suggestion: 'Try using a different email or update the existing user instead.',
-        existingUser: {
-          id: existingUser._id,
-          name: `${existingUser.first_name} ${existingUser.last_name}`,
-          email: existingUser.email_id
-        }
-      });
-    }
-
-    // Update the email in req.body to use normalized version
-    req.body.email_id = normalizedEmail;
-
-    const newUser = new User(req.body);
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+    const savedUsers = await User.insertMany(data);
+    res.status(201).json(savedUsers);
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: 'Validation Error',
-        errors: Object.keys(error.errors).map(key => ({
-          field: key,
-          message: error.errors[key].message
-        }))
-      });
-    }
-    if (error.code === 11000) {
-      // Extract field name from error
-      const field = Object.keys(error.keyPattern || {})[0] || 'email_id';
-      const value = Object.values(error.keyValue || {})[0] || 'unknown';
-      
-      return res.status(409).json({ 
-        message: `A user with this ${field === 'email_id' ? 'email' : field} already exists.`,
-        field: field,
-        value: value,
-        suggestion: 'Please use a different email address or update the existing user.'
-      });
-    }
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// GET check if email exists
-app.get('/api/users/check-email/:email', async (req, res) => {
-  try {
-    const email = req.params.email;
-    const existingUser = await User.findOne({ email_id: email });
-    
-    res.json({
-      exists: !!existingUser,
-      email: email,
-      user: existingUser ? {
-        id: existingUser._id,
-        name: `${existingUser.first_name} ${existingUser.last_name}`
-      } : null
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
