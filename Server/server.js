@@ -65,6 +65,28 @@ app.post('/api/users', async (req, res) => {
       });
     }
 
+    // Normalize email (trim and lowercase)
+    const normalizedEmail = email_id.trim().toLowerCase();
+    
+    // Check if email already exists before creating user
+    const existingUser = await User.findOne({ 
+      email_id: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') } 
+    });
+    if (existingUser) {
+      return res.status(409).json({ 
+        message: 'Email already exists. Please use a different email address.',
+        suggestion: 'Try using a different email or update the existing user instead.',
+        existingUser: {
+          id: existingUser._id,
+          name: `${existingUser.first_name} ${existingUser.last_name}`,
+          email: existingUser.email_id
+        }
+      });
+    }
+
+    // Update the email in req.body to use normalized version
+    req.body.email_id = normalizedEmail;
+
     const newUser = new User(req.body);
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
@@ -79,10 +101,30 @@ app.post('/api/users', async (req, res) => {
       });
     }
     if (error.code === 11000) {
-      return res.status(400).json({ 
-        message: 'Email already exists. Please use a different email address.' 
+      return res.status(409).json({ 
+        message: 'Duplicate entry detected. This should not happen as we check for duplicates beforehand.',
+        error: 'DUPLICATE_KEY_ERROR'
       });
     }
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET check if email exists
+app.get('/api/users/check-email/:email', async (req, res) => {
+  try {
+    const email = req.params.email;
+    const existingUser = await User.findOne({ email_id: email });
+    
+    res.json({
+      exists: !!existingUser,
+      email: email,
+      user: existingUser ? {
+        id: existingUser._id,
+        name: `${existingUser.first_name} ${existingUser.last_name}`
+      } : null
+    });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
