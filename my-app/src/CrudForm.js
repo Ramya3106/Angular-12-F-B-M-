@@ -156,44 +156,50 @@ export default function CrudForm() {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 8 }}>
-            <FormLabel style={{ marginBottom: 8 }}>Gender</FormLabel>
+            <FormLabel style={{ marginBottom: 1 }}>Gender</FormLabel>
             <RadioGroup row value={form.gender} onChange={handleChange('gender')}>
               <FormControlLabel value="Male" control={<Radio />} label="Male" style={{ marginRight: 24 }} />
               <FormControlLabel value="Female" control={<Radio />} label="Female" />
+              <FormControlLabel value="Transgender" control={<Radio />} label="Transgender" />
             </RadioGroup>
           </div>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        </Grid>
+        <Grid container spacing={2} mt={5}>
+        <Grid item xs={12} sm={6} md={2.5}>
           <Autocomplete
             options={countryOptions}
             value={form.country}
             onChange={handleChange('country')}
-            renderInput={(params) => <TextField {...params} label="Country" fullWidth />}
+            renderInput={(params) => <TextField {...params} label="Country" fullWidth size="medium" />}
             filterOptions={(options, state) =>
               options.filter(option => option.toLowerCase().startsWith(state.inputValue.toLowerCase()))
             }
+            sx={{ minWidth: 200 }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.5}>
           <Autocomplete
             options={stateOptions}
             value={form.state}
             onChange={handleChange('state')}
-            renderInput={(params) => <TextField {...params} label="State" fullWidth />}
+            renderInput={(params) => <TextField {...params} label="State" fullWidth size="medium" />}
+            sx={{ minWidth: 200 }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.5}>
           <Autocomplete
             options={cityOptions}
             value={form.city}
             onChange={handleChange('city')}
-            renderInput={(params) => <TextField {...params} label="City" fullWidth />}
+            renderInput={(params) => <TextField {...params} label="City" fullWidth size="medium" />}
+            sx={{ minWidth: 200 }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.25}>
           <TextField label="Address" fullWidth value={form.address} onChange={handleChange('address')} />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.25}>
           <TextField label="Pincode" fullWidth value={form.pincode} onChange={handleChange('pincode')} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
