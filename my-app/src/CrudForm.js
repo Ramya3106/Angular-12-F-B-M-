@@ -155,6 +155,15 @@ export default function CrudForm() {
           <TextField label="Email ID" fullWidth value={form.email} onChange={handleChange('email')} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 8 }}>
+            <FormLabel style={{ marginBottom: 8 }}>Gender</FormLabel>
+            <RadioGroup row value={form.gender} onChange={handleChange('gender')}>
+              <FormControlLabel value="Male" control={<Radio />} label="Male" style={{ marginRight: 24 }} />
+              <FormControlLabel value="Female" control={<Radio />} label="Female" />
+            </RadioGroup>
+          </div>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Autocomplete
             options={countryOptions}
             value={form.country}
@@ -164,15 +173,6 @@ export default function CrudForm() {
               options.filter(option => option.toLowerCase().startsWith(state.inputValue.toLowerCase()))
             }
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 8 }}>
-            <FormLabel style={{ marginBottom: 8 }}>Gender</FormLabel>
-            <RadioGroup row value={form.gender} onChange={handleChange('gender')}>
-              <FormControlLabel value="Male" control={<Radio />} label="Male" style={{ marginRight: 24 }} />
-              <FormControlLabel value="Female" control={<Radio />} label="Female" />
-            </RadioGroup>
-          </div>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <Autocomplete
