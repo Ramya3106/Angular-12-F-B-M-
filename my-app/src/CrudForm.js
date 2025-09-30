@@ -206,39 +206,198 @@ export default function CrudForm() {
       
       {/* Users Table */}
       <Box sx={{ mt: 4 }}>
-        <h3>Users List</h3>
-        <TableContainer component={Paper}>
-          <Table>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 2,
+          p: 2,
+          backgroundColor: '#f8f9fa',
+          borderRadius: 1
+        }}>
+          <h3 style={{ margin: 0, color: '#1976d2' }}>Users List</h3>
+          <Box sx={{ color: '#666', fontSize: '14px' }}>
+            Total Users: {users.length}
+          </Box>
+        </Box>
+        <TableContainer component={Paper} sx={{ boxShadow: 2 }}>
+          <Table sx={{ minWidth: 650 }}>
             <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>DOB</TableCell>
-                <TableCell>Gender</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Actions</TableCell>
+              <TableRow sx={{ backgroundColor: '#1976d2' }}>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '15%', 
+                  color: 'white',
+                  fontSize: '14px'
+                }}>Name</TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '18%', 
+                  color: 'white',
+                  fontSize: '14px'
+                }}>Email</TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '12%', 
+                  color: 'white',
+                  fontSize: '14px'
+                }}>DOB</TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '10%', 
+                  color: 'white',
+                  fontSize: '14px'
+                }}>Gender</TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '20%', 
+                  color: 'white',
+                  fontSize: '14px'
+                }}>Location</TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '15%', 
+                  color: 'white',
+                  fontSize: '14px'
+                }}>Address</TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 'bold', 
+                  width: '10%', 
+                  textAlign: 'center',
+                  color: 'white',
+                  fontSize: '14px'
+                }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell>{user.first_name} {user.last_name}</TableCell>
-                  <TableCell>{user.email_id}</TableCell>
-                  <TableCell>{user.date_of_birth}</TableCell>
-                  <TableCell>{user.gender}</TableCell>
-                  <TableCell>{user.city}, {user.state}, {user.country}</TableCell>
-                  <TableCell>{user.address}, {user.pincode}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleEdit(user)} color="primary">
-                      <Edit />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(user._id)} color="error">
-                      <Delete />
-                    </IconButton>
+              {users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} sx={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                    No users found. Add some users to see them here.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                users.map((user, index) => (
+                  <TableRow 
+                    key={user._id} 
+                    sx={{ 
+                      '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+                      '&:hover': { backgroundColor: '#f0f7ff' },
+                      borderBottom: '1px solid #e0e0e0'
+                    }}
+                  >
+                    <TableCell sx={{ 
+                      padding: '14px 16px',
+                      fontWeight: '500',
+                      verticalAlign: 'middle'
+                    }}>
+                      {user.first_name} {user.last_name}
+                    </TableCell>
+                    <TableCell sx={{ 
+                      padding: '14px 16px',
+                      verticalAlign: 'middle',
+                      wordBreak: 'break-word'
+                    }}>
+                      {user.email_id}
+                    </TableCell>
+                    <TableCell sx={{ 
+                      padding: '14px 16px',
+                      verticalAlign: 'middle'
+                    }}>
+                      {user.date_of_birth}
+                    </TableCell>
+                    <TableCell sx={{ 
+                      padding: '14px 16px',
+                      verticalAlign: 'middle'
+                    }}>
+                      <Box sx={{
+                        display: 'inline-block',
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        backgroundColor: user.gender?.toLowerCase() === 'female' ? '#fce4ec' : '#e3f2fd',
+                        color: user.gender?.toLowerCase() === 'female' ? '#c2185b' : '#1976d2',
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}>
+                        {user.gender}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ 
+                      padding: '14px 16px',
+                      verticalAlign: 'middle',
+                      maxWidth: '200px'
+                    }}>
+                      {user.city && user.state && user.country 
+                        ? `${user.city}, ${user.state}, ${user.country}`
+                        : `${user.city || ''} ${user.state || ''} ${user.country || ''}`.trim()
+                      }
+                    </TableCell>
+                    <TableCell sx={{ 
+                      padding: '14px 16px',
+                      verticalAlign: 'middle',
+                      maxWidth: '150px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {user.address && user.pincode 
+                        ? `${user.address}, ${user.pincode}`
+                        : `${user.address || ''} ${user.pincode || ''}`.trim()
+                      }
+                    </TableCell>
+                    <TableCell sx={{ 
+                      padding: '14px 16px', 
+                      textAlign: 'center',
+                      verticalAlign: 'middle'
+                    }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        gap: 1 
+                      }}>
+                        <IconButton 
+                          onClick={() => handleEdit(user)} 
+                          color="primary"
+                          size="small"
+                          sx={{ 
+                            padding: '8px',
+                            backgroundColor: '#e3f2fd',
+                            '&:hover': { 
+                              backgroundColor: '#bbdefb',
+                              transform: 'scale(1.1)'
+                            },
+                            transition: 'all 0.2s'
+                          }}
+                          title="Edit user"
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this user?')) {
+                              handleDelete(user._id);
+                            }
+                          }} 
+                          color="error"
+                          size="small"
+                          sx={{ 
+                            padding: '8px',
+                            backgroundColor: '#ffebee',
+                            '&:hover': { 
+                              backgroundColor: '#ffcdd2',
+                              transform: 'scale(1.1)'
+                            },
+                            transition: 'all 0.2s'
+                          }}
+                          title="Delete user"
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
