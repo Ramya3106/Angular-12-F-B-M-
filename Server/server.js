@@ -9,13 +9,39 @@ const User = require('./models/User');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB Atlas connection
+// MongoDB Atlas connection with improved options
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000, // Increased timeout to 30 seconds
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 30000,
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  retryWrites: true,
 })
-  .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .then(() => {
+    console.log('✅ Successfully connected to MongoDB Atlas');
+    console.log('Database Name:', mongoose.connection.db.databaseName);
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err.message);
+    console.error('Full error:', err);
+    process.exit(1);
+  });
+
+// Connection event listeners
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to MongoDB Atlas');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose disconnected from MongoDB Atlas');
+});
 
 // Middleware
 app.use(cors());
@@ -36,10 +62,34 @@ app.delete('/api/cleanup-duplicates', async (req, res) => {
 
 // Test route
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Server is running!', timestamp: new Date() });
+  res.json({ 
+    message: 'Server is running!', 
+    timestamp: new Date(),
+    mongoStatus: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    database: mongoose.connection.db ? mongoose.connection.db.databaseName : 'Not connected'
+  });
 });
 
-// GET all users
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await mongoose.connection.db.admin().ping();
+    res.json({
+      status: 'healthy',
+      database: 'connected',
+      timestamp: new Date(),
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      database: 'disconnected',
+      error: error.message,
+      timestamp: new Date()
+    });
+  }
+});// GET all users
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find();
